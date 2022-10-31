@@ -1,0 +1,34 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="process_form_view_inherit">
+            <field name="name">syd_bpm.process.form</field>
+            <field name="model">syd_bpm.process</field>
+            <field name="inherit_id" ref="syd_bpm.process_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="inside">
+                    <button name="button_get_process_export_json" class="oe_highlight" type="object" string="Get Export Json" attrs="{'invisible':[('export_data_url','!=',False)]}"></button>
+                    <button name="button_parse_process_json" class="oe_highlight" type="object" string="Parse Json" attrs="{'invisible':[('export_data_url','=',False)]}"></button>
+                </xpath>
+                <field name="process_group_id" position="after">
+                    <field name="pm_process_id"/>
+                    <field name="pm_callable_id"/>
+                </field>
+                <field name="start_events" position="after">
+                    <field name="export_data_url" widget="url"/>
+                    <field name="export_data" invisible="1"/>
+                </field>
+                <field name="dynamic_form_ids" position="replace">
+                    <field name="dynamic_form_ids">
+                        <tree string="Screens" editable="bottom">
+                            <field name="name"/>
+                            <field name="process_id"/>
+                            <field name="pm_screen_id"/>
+                            <field name="pm_screen_label"/>
+                            <field name="pm_screen_type"/>
+                        </tree>
+                    </field>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
