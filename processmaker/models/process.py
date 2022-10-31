@@ -42,33 +42,34 @@ class PmProcess(models.Model):
     
     
     def _call(self, request, query_param=False,jsonobject=dict(), method='GET'):
+        pm_url = self.env["ir.config_parameter"].sudo().get_param("pm.url")
         auth = {
                 'grant_type': 'password',
                 'scope': '*',
-                'client_id': self.pm_client_id,
-                'client_secret': self.pm_client_secret,
-                'username': self.pm_username,
-                'password': self.pm_password
+                'client_id': self.env["ir.config_parameter"].sudo().get_param("pm.client"),
+                'client_secret': self.env["ir.config_parameter"].sudo().get_param("pm.client.secret"),
+                'username': self.env["ir.config_parameter"].sudo().get_param("pm.username"),
+                'password': self.env["ir.config_parameter"].sudo().get_param("pm.password"),
         }
-        result = requests.post(self.pm_url+'/oauth/token', data=auth)
+        result = requests.post(pm_url+'/oauth/token', data=auth)
         if (not result.ok):
             raise ValidationError('{}, {}'.format(result.status_code, result.text))
         jsonresult = json.loads(result.content)
         if ('error' in jsonresult) :
             raise ValidationError('{}'.format(result.error_description))
         access_token = jsonresult['access_token']
-        self.pm_access_token = access_token if access_token else ''
+        # self.pm_access_token = access_token if access_token else ''
         headers = {'Authorization': 'Bearer '+access_token}
         
         endresult = ''
         if (method == 'GET'):
-            endresult = requests.get(self.pm_url+'/api/1.0/' + request, params = query_param, headers=headers )
+            endresult = requests.get(pm_url+'/api/1.0/' + request, params = query_param, headers=headers )
         if (method == 'POST'):
             headers.update({'Content-Type': 'application/json'})
-            endresult = requests.post(self.pm_url+'/api/1.0/' + request, params = query_param, data = json.dumps(jsonobject), headers=headers)
+            endresult = requests.post(pm_url+'/api/1.0/' + request, params = query_param, data = json.dumps(jsonobject), headers=headers)
         if (method == 'PUT'):
             headers.update({'Content-Type': 'application/json'})
-            endresult = requests.put(self.pm_url+'/api/1.0/' + request, data = jsonobject, headers=headers)
+            endresult = requests.put(pm_url+'/api/1.0/' + request, data = jsonobject, headers=headers)
         if (not bool(endresult) or not endresult.ok):
             raise  UserError(str(endresult.status_code)+"-" + str(endresult.content))
         if bool(endresult.content): 

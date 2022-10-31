@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record model="ir.actions.server" id="action_new_process">
+    <!-- <record model="ir.actions.server" id="action_new_process">
         <field name="name">Create new process</field>
-        <field name="model_id" ref="syd_bpm.model_syd_bpm_process"/>
-        <field name="binding_model_id" ref="syd_bpm.model_syd_bpm_process"/>
+        <field name="model_id" ref="processmaker.model_pm_process"/>
+        <field name="binding_model_id" ref="processmaker.model_pm_process"/>
+        <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
             action = records.action_totp_disable()
         </field>
         <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
+    </record> -->
+
+    <record model="ir.actions.server" id="action_upload_user_pm">
+        <field name="name">Upload user to processmaker</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="binding_model_id" ref="base.model_res_users"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            records.upload_to_pm()
+        </field>
+        <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
     </record>
+
 </odoo>
