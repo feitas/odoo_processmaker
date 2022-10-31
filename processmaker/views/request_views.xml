@@ -1,8 +1,8 @@
 <odoo>
     <data>
-        <record model="ir.ui.view" id="view_process_tree">
-            <field name="name">view.process.tree</field>
-            <field name="model">pm.process</field>
+        <record model="ir.ui.view" id="view_request_tree">
+            <field name="name">view.request.tree</field>
+            <field name="model">pm.request</field>
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
@@ -10,9 +10,9 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="view_process_form">
-            <field name="name">pm.process.form</field>
-            <field name="model">pm.process</field>
+        <record model="ir.ui.view" id="view_request_form">
+            <field name="name">pm.request.form</field>
+            <field name="model">pm.request</field>
             <field name="arch" type="xml">
                 <form>
                     <group>

@@ -34,7 +34,9 @@
         
         'views/assets.xml',
         'views/menu_actions.xml',
-        # 'views/process_views.xml',
+        'views/process_views.xml',
+        'views/request_views.xml',
+        'views/task_views.xml',
         'views/res_config_settings_views.xml',
         # 'views/views.xml',
         # 'views/process_views.xml',

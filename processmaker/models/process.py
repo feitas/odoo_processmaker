@@ -34,7 +34,7 @@ def TimeConverterDate(pm):
 class PmProcess(models.Model):
     _name = 'pm.process'
     
-
+    name = fields.Char()
     pm_process_id = fields.Char(string='Process Maker Process ID')
     pm_callable_id = fields.Char(string='Process Maker Node Identifier ID')
     export_data_url = fields.Char(string='Process Export URL')
@@ -554,23 +554,3 @@ class PmProcess(models.Model):
         return False
 
 
-class PmRequest(models.Model):
-    _name = 'pm.request'
-    
-    pm_callable_id = fields.Char(string='Process Maker Node Identifier ID')
-    pm_activity_id = fields.Char(string='Process Maker Request ID', required=False)
-    pm_user = fields.Char(string="Process Maker User ID")
-    related_model = fields.Char(string='Related Model')
-    related_id = fields.Char(string='Related Record ID')
-    status = fields.Selection([('ACTIVE', 'IN PROGRESS'), ('ERROR', 'ERROR'), ('CANCELED', 'CANCELED'),('COMPLETED', 'COMPLETED')],string='Status', default='ACTIVE')
-    
-    def start_activity(self):
-        pass
-
-    
-class PmTask(models.Model):
-    _name = 'pm.task'
-    
-    pm_task_id = fields.Char('Activity Id')
-    pm_del_index = fields.Integer('Del Index')
-    
