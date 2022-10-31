@@ -11,17 +11,39 @@
                     <div class="app_settings_block" data-string="Business Process Manager" string="Business Process Manager" data-key="processmaker" groups="base.group_system">
                         <h2>Business Process Manager</h2>
                         <div class="row mt16 o_settings_container">
-                            
                             <div class="col-12 col-lg-12 o_setting_box">
-                                <div class="o_setting_left_pane" >
-                                    
-                                </div>
+                                <div class="o_setting_left_pane" ></div>
                                 <div class="o_setting_right_pane">
                                     <label for="pm_url"/>
-                                    <div class="text-muted">
-                                        Activity Type
-                                    </div>
                                     <field name="pm_url" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-12 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_client_id"/>
+                                    <field name="pm_client_id" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-12 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_client_secret"/>
+                                    <field name="pm_client_secret" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-12 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_username"/>
+                                    <field name="pm_username" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-12 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_password"/>
+                                    <field name="pm_password" />
                                 </div>
                             </div>
                         </div>
