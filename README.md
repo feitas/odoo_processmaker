@@ -2,9 +2,7 @@
 
 B.P.M. 将 <a href="http://www.odoo.com">Odoo</a> 与 <a href="https://www.processmaker.com/">ProcessMaker</a> (4)进行了对接。
 
-[<a href="docs/README-OLD.md">之前项目的Readme</a>]
-
-Odoo版本： 当前版本15，接下来是14、16
+本仓库用于Odoo的14、16版本，因为重构所以不再fork之前的仓库。
 
 [<a target='_blank' href="https://baijiahao.baidu.com/builder/preview/s?id=1747820665361723046">使用说明文字版</a>]
 
@@ -20,7 +18,7 @@ Odoo版本： 当前版本15，接下来是14、16
 
 # 如何开发
 
-代码是基于V13的版本继续开发的，刚开始可能会稍感不适，以后也不敢保证永不重构，但现在是这样的...
+
 
 <img src="docs/images/modules-depends.png" />
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="processmaker.assets_backend" name="PM assets backend" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/processmaker/static/src/js/basic_model_ext.js"/>
+            <script type="text/javascript" src="/processmaker/static/src/js/form_controller_ext.js"/>
+        </xpath>
+    </template>
+</odoo>
