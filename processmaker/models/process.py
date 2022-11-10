@@ -33,6 +33,7 @@ def TimeConverterDate(pm):
 
 class PmProcess(models.Model):
     _name = 'pm.process'
+    _description = 'Pm Process'
     
     name = fields.Char()
     pm_process_id = fields.Char(string='Process Maker Process ID')
