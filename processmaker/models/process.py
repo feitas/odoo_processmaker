@@ -35,12 +35,18 @@ def TimeConverterDate(pm):
 class PmProcess(models.Model):
     _name = 'pm.process'
     _description = 'Pm Process'
+    _inherit = 'mail.thread'
 
     name = fields.Char()
     pm_process_id = fields.Char(string='Process Maker Process ID')
     pm_callable_id = fields.Char(string='Process Maker Node Identifier ID')
     export_data_url = fields.Char(string='Process Export URL')
     export_data = fields.Char(string='Process Export')
+    pm_activity_ids = fields.One2many(
+        'pm.request', 'process_id', string="Requests")
+    task_ids = fields.One2many('pm.task', 'process_id', string="Tasks")
+    dynamic_form_ids = fields.One2many(
+        'pm.dynamic_form', 'process_id', string='Dynamic form')
 
     def _call(self, request, query_param=False, jsonobject=dict(), method='GET'):
         pm_url = self.env["ir.config_parameter"].sudo().get_param("pm.url")
@@ -52,13 +58,12 @@ class PmProcess(models.Model):
             'username': self.env["ir.config_parameter"].sudo().get_param("pm.username"),
             'password': self.env["ir.config_parameter"].sudo().get_param("pm.password"),
         }
-        result = requests.post(pm_url+'/oauth/token', data=auth)
+        result = requests.post(f'{pm_url}/oauth/token', data=auth)
         if (not result.ok):
-            raise ValidationError('{}, {}'.format(
-                result.status_code, result.text))
+            raise ValidationError(f'{result.status_code}, {result.text}')
         jsonresult = json.loads(result.content)
         if ('error' in jsonresult):
-            raise ValidationError('{}'.format(result.error_description))
+            raise ValidationError(f'{result.error_description}')
         access_token = jsonresult['access_token']
         # self.pm_access_token = access_token if access_token else ''
         headers = {'Authorization': 'Bearer '+access_token}
@@ -225,8 +230,8 @@ class PmProcess(models.Model):
         return self._call(f'process_categories/{cat_id}')
 
     @api.model
-    def _get_assign_user(self):
-        par = {'filter': self.pm_user_name}
+    def _get_assign_user(self, user_name):
+        par = {'filter': user_name}
         res = self._call('users', par)
         try:
             return res['data'][0]['id']
@@ -347,100 +352,86 @@ class PmProcess(models.Model):
 
         return True
 
+    @api.model
     def update_processes(self):
-        _logger.warning(self.id)
-        pm_user_id = self._get_assign_user()
-        _logger.warning(pm_user_id)
+        pm_user_id = self._get_assign_user("admin")
+        process_list = self._get_process_list()
+        request_list = self._get_request_list()
+        role_list = self._get_group_list()
+        user_list = self._get_user_list()
+        for process in process_list:
+            process_id = self.env['pm.process'].search(
+                [('pm_process_id', '=', process['id'])], limit=1)
+            # pm_category = False
+            # if process['process_category_id'] != '':
+            #     pm_category = self._get_category_info(
+            #         int(process['process_category_id']))['name']
+            if not process_id:
+                _pm_callable_id = process.get('start_events')[0].get('ownerProcessId') if process.get(
+                    'start_events') and len(process.get('start_events')) > 0 else False
+                process_id = self.env['pm.process'].create(
+                    {'name': process['name'],
+                        'pm_process_id': process['id'],
+                        'pm_callable_id': _pm_callable_id,
+                        # 'category_id': self.env['syd_bpm.process_category'].get_or_create_category(pm_category)
+                     }
+                )
+            else:
+                process_id.name = process['name']
+                # process_id.start_events = str(process['start_events'])
+                # process_id.category_id = self.env['syd_bpm.process_category'].get_or_create_category(
+                #     pm_category)
+
+        for request in request_list:
+            if not request.get("process_id"):
+                print(request)
+                continue
+            process_id = self.env['pm.process'].search(
+                [('pm_process_id', '=', request['process_id'])], limit=1)
+            if not process_id:
+                continue
+            request_id = self.env['pm.request'].search(
+                [('pm_activity_id', '=', request['id']), ('process_id', '=', int(process_id))], limit=1)
+            if not request_id:
+                try:
+                    request_id = self.env['pm.request'].create(
+                        {'name': request['name'],
+                            'pm_user': request.get('user_id'),
+                            'process_id': process_id.id,
+                            'pm_activity_id': request['id'],
+                            'status': request['status'],
+                         }
+                    )
+                except Exception as e:
+                    _logger.warning(e)
+            else:
+                request_id.name = request['name']
+                request_id.process_id = process_id.id
+                request_id.pm_activity_id = request['id']
+                request_id.pm_user = request['user_id']
+
+        # for role in role_list:
+        #     role_id = self.env['syd_bpm.process_role'].get_or_create_process_role(
+        #         role['name'])
+        #     role_id.pm_group_id = role.get("id")
+        pm_user_name_list = [user['username'] for user in user_list]
+        odoo_user_list = self.env['res.users'].search([])
+        odoo_user_name_list = [user.name for user in odoo_user_list]
+        upgrade_val = []
+        for odoo_user in odoo_user_list:
+            if odoo_user.name not in pm_user_name_list:
+                try:
+                    _email = odoo_user.email if odoo_user.email else ''.join(
+                        (odoo_user.name, '@noway.com'))
+                    par = {'username': odoo_user.name, 'email': _email, 'status': 'ACTIVE',
+                           'firstname': 'email', 'lastname': 'email', 'password': '88888888'}
+                    res = self._call(
+                        f'users', jsonobject=par, method='POST')
+                    # FIXME: 如果pm有删除的用户，也是不可以创建的，会报错：A user with the username Administrator and email admin@example.com was previously deleted.
+                    odoo_user.write({'pm_user_id': res['id']})
+                except Exception as e:
+                    _logger.error(e)
         return True
-        for pgroup in self:
-            pm_user_id = self._get_assign_user()
-            process_list = self._get_process_list()
-            request_list = self._get_request_list()
-            role_list = self._get_group_list()
-            user_list = self._get_user_list()
-            for process in process_list:
-                process_id = self.env['syd_bpm.process'].search(
-                    [('pm_process_id', '=', process['id'])], limit=1)
-                if not process_id or not process_id.locked:
-                    #                   map = self._get_process_map(process['prj_uid'])
-                    pm_category = False
-                    if process['process_category_id'] != '':
-                        pm_category = self._get_category_info(
-                            int(process['process_category_id']))['name']
-                    if not process_id:
-                        _pm_callable_id = process.get('start_events')[0].get('ownerProcessId') if process.get(
-                            'start_events') and len(process.get('start_events')) > 0 else False
-                        process_id = self.env['syd_bpm.process'].create(
-                            {'name': process['name'],
-                             'description': process['description'],
-                             'pm_process_id': process['id'],
-                             'pm_callable_id': _pm_callable_id,
-                             'process_group_id': pgroup.id,
-                             'category_id': self.env['syd_bpm.process_category'].get_or_create_category(pm_category)
-                             }
-                        )
-                    else:
-                        process_id.name = process['name']
-                        process_id.description = process['description']
-                        process_id.start_events = str(process['start_events'])
-                        process_id.category_id = self.env['syd_bpm.process_category'].get_or_create_category(
-                            pm_category)
-
-            for request in request_list:
-                if not request.get("process_id"):
-                    print(request)
-                    continue
-                process_id = self.env['syd_bpm.process'].search(
-                    [('pm_process_id', '=', request['process_id'])], limit=1)
-                if not process_id:
-                    continue
-                request_id = self.env['syd_bpm.activity'].search(
-                    [('pm_activity_id', '=', request['id']), ('process_id', '=', int(process_id))], limit=1)
-                if not request_id:
-                    try:
-                        request_id = self.env['syd_bpm.activity'].create(
-                            {'name': request['name'],
-                             'pm_user': request.get('user_id'),
-                             'type': 'user-case',
-                             'process_id': process_id.id,
-                             'user_id': request['user_id'],
-                             'pm_activity_id': request['id'],
-                             'status': request['status'],
-                             }
-                        )
-                    except Exception as e:
-                        _logger.warning(e)
-                else:
-                    request_id.name = request['name']
-                    request_id.process_id = process_id.id
-                    request_id.user_id = request['user_id']
-                    request_id.pm_activity_id = request['id']
-                    request_id.pm_user = request['user_id']
-
-            for role in role_list:
-                role_id = self.env['syd_bpm.process_role'].get_or_create_process_role(
-                    role['name'])
-                role_id.pm_group_id = role.get("id")
-            pm_user_name_list = [user['username'] for user in user_list]
-            odoo_user_list = self.env['res.users'].search([])
-            odoo_user_name_list = [user.name for user in odoo_user_list]
-            upgrade_val = []
-            for odoo_user in odoo_user_list:
-                if odoo_user.name not in pm_user_name_list:
-                    try:
-                        _email = odoo_user.email if odoo_user.email else ''.join(
-                            (odoo_user.name, '@noway.com'))
-                        par = {'username': odoo_user.name, 'email': _email, 'status': 'ACTIVE',
-                               'firstname': 'email', 'lastname': 'email', 'password': '88888888'}
-                        res = self._call(
-                            f'users', jsonobject=par, method='POST')
-                        # FIXME: 如果pm有删除的用户，也是不可以创建的，会报错：A user with the username Administrator and email admin@example.com was previously deleted.
-                        odoo_user.write({'pm_user_id': res['id']})
-                    except Exception as e:
-                        _logger.error(e)
-            pgroup.last_update = fields.Datetime.now()
-
-            return True
 
     @api.model
     def _set_variables(self, case):
@@ -512,7 +503,7 @@ class PmProcess(models.Model):
         """
         Get process export url form the api 'processes/{process_id}/export', method='POST
         """
-        data_url_str = self.process_group_id._get_export_data_url(
+        data_url_str = self._get_export_data_url(
             self.pm_process_id)
         if data_url_str:
             self.export_data_url = data_url_str.get('url')
@@ -531,16 +522,14 @@ class PmProcess(models.Model):
 
     def _create_dynamic_form_from_parsed_files(self):
         """
-        TODO 解析下载的process json文件，写到Dynamic Form
+        解析下载的process json文件，写到Dynamic Form
         """
-        # 2.创建Dynamic Form记录来存放Screen，Name->Screen Name,添加一个字段Element Name
-        # Name->Screen Name,ID->Screen ID
         if self.export_data and isinstance(self.export_data, str):
             _data_dict = json.loads(self.export_data)
             _logger.warning(_data_dict)
             _screen_list = _data_dict.get('screens')
             for _screen in _screen_list:
-                _screen_record = self.env['syd_bpm.dynamic_form'].search(
+                _screen_record = self.env['pm.dynamic_form'].search(
                     [('pm_screen_id', '=', _screen.get('id')), ('name', '=', _screen.get('config')[0].get('name'))])
                 if not _screen_record:
                     _val = {
@@ -549,9 +538,8 @@ class PmProcess(models.Model):
                         'process_id': self.id,
                         'pm_screen_label': _screen.get('title'),
                         'pm_screen_type': _screen.get('type'),
-                        'note': _screen.get('title')
                     }
-                    _screen_record = self.env['syd_bpm.dynamic_form'].create(
+                    _screen_record = self.env['pm.dynamic_form'].create(
                         _val)
                     _item_list = _screen.get('config')[0].get('items')
                     _item_val = []

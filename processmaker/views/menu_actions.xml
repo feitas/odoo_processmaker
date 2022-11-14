@@ -1,4 +1,4 @@
-<openerp>
+<odoo>
    <data>
 
       <record model="ir.actions.act_window" id="action_pm_process">
@@ -65,4 +65,4 @@
 
        -->
    </data>
-</openerp>
+</odoo>

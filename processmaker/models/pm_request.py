@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright 2018-2019 SayDigital (https://www.saydigital.it)
-# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-
 import time
 
 from odoo import models, fields, api
@@ -14,6 +10,8 @@ class PmRequest(models.Model):
     _description = 'Pm Request'
 
     name = fields.Char()
+    process_id = fields.Many2one(
+        'pm.process', string='Process', readonly=True, ondelete='cascade')
     pm_callable_id = fields.Char(string='Process Maker Node Identifier ID')
     pm_activity_id = fields.Char(
         string='Process Maker Request ID', required=False)

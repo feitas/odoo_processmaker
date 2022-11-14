@@ -21,3 +21,5 @@ class PmTask(models.Model):
     name = fields.Char()
     pm_task_id = fields.Char('Activity Id')
     pm_del_index = fields.Integer('Del Index')
+    process_id = fields.Many2one(
+        'pm.process', string='Process', ondelete='SET NULL')
