@@ -4,8 +4,12 @@
             <field name="name">view.process.tree</field>
             <field name="model">pm.process</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree js_class="pm_process_sync_dat_list">
                     <field name="name"/>
+                    <field name="pm_process_id"/>
+                    <field name="pm_callable_id"/>
+                    <field name="export_data_url"/>
+                    <field name="export_data"/>
                 </tree>
             </field>
         </record>
@@ -15,9 +19,15 @@
             <field name="model">pm.process</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
-                        <field name="name" />
-                    </group>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="pm_process_id"/>
+                            <field name="pm_callable_id"/>
+                            <field name="export_data_url"/>
+                            <field name="export_data"/>
+                        </group>
+                    </sheet>
                 </form>
             </field>
         </record>

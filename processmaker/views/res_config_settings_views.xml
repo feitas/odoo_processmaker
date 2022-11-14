@@ -46,6 +46,11 @@
                                     <field name="pm_password" required="True"/>
                                 </div>
                             </div>
+                            <div class="col-12 col-lg-12 o_setting_box">
+                                <div class="o_setting_right_pane">
+                                    <button name="update_processes" class="btn-primary" type="object" title="Update" string="Sync Data" icon="fa-refresh"/>
+                                </div>
+                            </div>
                         </div>
 
                     </div>

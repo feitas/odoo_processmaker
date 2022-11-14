@@ -18,15 +18,15 @@
     'version': '16.0.0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['web', 'mail'],
+    'depends': ['base', 'web', 'mail'],
 
     # always loaded
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/actions.xml',
+        # 'data/datas.xml',
 
-        # 'views/assets.xml',
         'views/menu_actions.xml',
         'views/process_views.xml',
         'views/request_views.xml',
@@ -41,6 +41,7 @@
     'assets': {
         'web.assets_backend': [
             'processmaker/static/src/js/*',
+            'processmaker/static/src/xml/*.xml',
         ],
     },
     'installable': True,

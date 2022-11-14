@@ -24,3 +24,7 @@ class OdooConfiguration(models.TransientModel):
 
     pm_user_name = fields.Char(string='Name of the user of PM', required=False)
     pm_access_token = fields.Char()
+
+    @api.model
+    def update_processes(self):
+        pass
