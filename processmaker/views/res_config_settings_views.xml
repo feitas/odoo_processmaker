@@ -12,42 +12,47 @@
                         <h2>Business Process Manager</h2>
                         <div class="row mt16 o_settings_container">
                             <div class="col-12 col-lg-12 o_setting_box">
-                                <div class="o_setting_left_pane" ></div>
+                                <div class="o_setting_left_pane"></div>
                                 <div class="o_setting_right_pane">
                                     <label for="pm_url"/>
-                                    <field name="pm_url" />
+                                    <field name="pm_url" required="True"/>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-12 o_setting_box">
                                 <div class="o_setting_left_pane"></div>
                                 <div class="o_setting_right_pane">
                                     <label for="pm_client_id"/>
-                                    <field name="pm_client_id" />
+                                    <field name="pm_client_id" required="True"/>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-12 o_setting_box">
                                 <div class="o_setting_left_pane"></div>
                                 <div class="o_setting_right_pane">
                                     <label for="pm_client_secret"/>
-                                    <field name="pm_client_secret" />
+                                    <field name="pm_client_secret" required="True"/>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-12 o_setting_box">
                                 <div class="o_setting_left_pane"></div>
                                 <div class="o_setting_right_pane">
                                     <label for="pm_username"/>
-                                    <field name="pm_username" />
+                                    <field name="pm_username" required="True"/>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-12 o_setting_box">
                                 <div class="o_setting_left_pane"></div>
                                 <div class="o_setting_right_pane">
                                     <label for="pm_password"/>
-                                    <field name="pm_password" />
+                                    <field name="pm_password" required="True"/>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-12 o_setting_box">
+                                <div class="o_setting_right_pane">
+                                    <button name="update_processes" class="btn-primary" type="object" title="Update" string="Sync Data" icon="fa-refresh"/>
                                 </div>
                             </div>
                         </div>
-                       
+
                     </div>
                 </xpath>
             </field>

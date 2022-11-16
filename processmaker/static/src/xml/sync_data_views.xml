@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates>
+    <t t-name="ProcessMaker.sync_data_button" owl="1">
+        <button t-if="isBpmManager" type="button" class="btn btn-secondary o_button_pm_sync_data" t-on-click="onClickSyncData">
+            Sync Data
+        </button>
+    </t>
+
+    <t t-name="ProcessMakerListView.buttons" t-inherit="web.ListView.Buttons" t-inherit-mode="primary" owl="1">
+        <!-- Before the export button -->
+        <xpath expr="//t[contains(@t-if, 'isExportEnable')]" position="before">
+            <t t-call="ProcessMaker.sync_data_button"/>
+        </xpath>
+    </t>
+</templates>

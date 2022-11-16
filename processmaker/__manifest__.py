@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright 2022 Feitas (https://www.wffeitas.com)
-# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-
 {
     'name': "BPM - ProcessMaker Integration",
     'summary': """
@@ -12,8 +8,6 @@
          
          - Process through ProcessMaker
          
-        
-         
     """,
     'license': 'LGPL-3',
     'author': "Feitas",
@@ -21,18 +15,18 @@
 
 
     'category': 'project',
-    'version': '14.0.0.1',
+    'version': '16.0.0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['web', 'mail'],
+    'depends': ['base', 'web', 'mail'],
 
     # always loaded
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/actions.xml',
-        
-        'views/assets.xml',
+        # 'data/datas.xml',
+
         'views/menu_actions.xml',
         'views/process_views.xml',
         'views/request_views.xml',
@@ -44,6 +38,12 @@
     ],
     'qweb': [
     ],
+    'assets': {
+        'web.assets_backend': [
+            'processmaker/static/src/js/*',
+            'processmaker/static/src/xml/*.xml',
+        ],
+    },
     'installable': True,
-    'application': False,
+    'application': True,
 }
