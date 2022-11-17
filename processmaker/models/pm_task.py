@@ -43,23 +43,23 @@ class PmTask(models.Model):
             record.is_assigned_to = record.pm_assigned_to.id == self.env.uid
 
     def create(self, vals):
-        case = super(PmTask, self).create(vals)
-        if case.related_model:
+        task = super(PmTask, self).create(vals)
+        if task.related_model:
             _vals = {
                 "res_name": "",
-                "date_deadline": case.date_deadline,
-                "activity_type_id": self.env['ir.model.data']._xmlid_to_res_id('syd_process_maker.mail_activity_type_process', raise_if_not_found=False),
-                "user_id": case.pm_assigned_to.id,
+                "date_deadline": task.date_deadline,
+                "activity_type_id": self.env['ir.model.data']._xmlid_to_res_id('processmaker.mail_activity_type_process', raise_if_not_found=False),
+                "user_id": task.pm_assigned_to.id,
                 "summary": "",
-                "res_id": int(case.related_id),
-                "res_model_id": self.env['ir.model'].search([('model', '=', case.related_model)]).id
+                "res_id": int(task.related_id),
+                "res_model_id": self.env['ir.model'].search([('model', '=', task.related_model)]).id
             }
-            if case.activity_id and "-" in case.activity_id.name:
-                _vals.update({"res_name": case.activity_id.name.split('-')[1]})
+            if task.activity_id and "-" in task.activity_id.name:
+                _vals.update({"res_name": task.activity_id.name.split('-')[1]})
 
             activity = self.env['mail.activity'].sudo().create(_vals)
-            case.sudo().write({'odoo_activity_id': activity.id})
-        return case
+            task.sudo().write({'odoo_activity_id': activity.id})
+        return task
 
     def confirm_case(self, upload_data=False):
         """
@@ -69,9 +69,6 @@ class PmTask(models.Model):
             raise UserError("没有相应的流程!")
         if not self.pm_case_id:
             raise UserError("没有相应的任务!")
-        if result not in ['pass', 'refuse']:
-            raise ValidationError("审批结论传值错误，必须是pass或者refuse！")
-
         _result = upload_data.get('result')
         if _result and _result not in ['pass', 'refuse']:
             raise ValidationError("审批结论传值错误，必须是pass或者refuse！")
@@ -96,56 +93,55 @@ class PmTask(models.Model):
                                     {item.pm_screen_item_name: _related_record[item.pm_screen_item_name]})
                         if item in upload_data:
                             form_datas.update({item: upload_data[item]})
-        _data = {
-            "status": "COMPLETED",
-            "data": form_datas
-        }
-        _logger.warning(_data)
-        res = self.process_id.process_group_id._call(
-            f'tasks/{self.pm_case_id}', jsonobject=json.dumps(_data), method='PUT')
-        if res:
-            if res.get('status') and res.get('status') == 'CLOSED':
-                self.state = 'completed'
-            params = {
-                'process_request_id': int(self.activity_id.pm_activity_id)
+            _data = {
+                "status": "COMPLETED",
+                "data": form_datas
             }
-            pm_tasks = self.process_id.process_group_id._call(
-                'tasks', params, method='GET')
-            _logger.warning(pm_tasks)
-            if pm_tasks.get('data'):
-                for item in pm_tasks.get('data'):
-                    _domain = [
-                        ('pm_case_id', '=', item.get('id')),
-                    ]
-                    task = self.env['pm.task'].search(_domain)
-                    if not task:
-                        _state = 'in_progress'
-                        if item.get('status') and item.get('status') == 'CLOSED':
-                            _state = 'cancelled'
-                        elif item.get('status') and item.get('status') == 'COMPLETED':
-                            _state = 'completed'
-                        _val = {
-                            'pm_case_id': item.get('id'),
-                            'name': item.get('element_name'),
-                            'activity_id': self.activity_id.id,
-                            'process_id': self.process_id.id,
-                            'related_model': self.related_model,
-                            'related_id': int(self.related_id) if isinstance(self.related_id, int) else str(self.related_id),
-                            'state': _state,
-                            'date_deadline': TimeConverterDate(item.get("due_at")),
-                            'pm_element_name': item.get('element_name'),
-                        }
-                        _user = self.env['res.users'].search(
-                            [('pm_user_id', '=', item.get('user_id'))])
-
-                        if _user:
-                            _val.update({'pm_assigned_to': _user.id})
-                        else:
-                            _val.update(
-                                {'pm_assigned_to': self.env['res.users'].search([], limit=1).id})
-                        self.env['pm.task'].create(_val)
-            else:
+            res = self.process_id._call(
+                f'tasks/{self.pm_case_id}', jsonobject=json.dumps(_data), method='PUT')
+            if res:
+                if res.get('status') and res.get('status') == 'CLOSED':
+                    self.state = 'completed'
+                params = {
+                    'process_request_id': int(self.activity_id.pm_activity_id)
+                }
+                pm_tasks = self.process_id._call(
+                    'tasks', params, method='GET')
                 _logger.warning(pm_tasks)
+                if pm_tasks.get('data'):
+                    for item in pm_tasks.get('data'):
+                        _domain = [
+                            ('pm_case_id', '=', item.get('id')),
+                        ]
+                        task = self.env['pm.task'].search(_domain)
+                        if not task:
+                            _state = 'in_progress'
+                            if item.get('status') and item.get('status') == 'CLOSED':
+                                _state = 'cancelled'
+                            elif item.get('status') and item.get('status') == 'COMPLETED':
+                                _state = 'completed'
+                            _val = {
+                                'pm_case_id': item.get('id'),
+                                'name': item.get('element_name'),
+                                'activity_id': self.activity_id.id,
+                                'process_id': self.process_id.id,
+                                'related_model': self.related_model,
+                                'related_id': int(self.related_id) if isinstance(self.related_id, int) else str(self.related_id),
+                                'state': _state,
+                                'date_deadline': TimeConverterDate(item.get("due_at")),
+                                'pm_element_name': item.get('element_name'),
+                            }
+                            _user = self.env['res.users'].search(
+                                [('pm_user_id', '=', item.get('user_id'))])
+
+                            if _user:
+                                _val.update({'pm_assigned_to': _user.id})
+                            else:
+                                _val.update(
+                                    {'pm_assigned_to': self.env['res.users'].search([], limit=1).id})
+                            self.env['pm.task'].create(_val)
+                else:
+                    _logger.warning(pm_tasks)
         else:
-            _logger.warning("更新task没有成功...")
+            raise UserError("更新task没有成功...")
         return True

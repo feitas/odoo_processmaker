@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright 2022-2022 Feitas (https://www.wffeitas.com)
-# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-
 import json
 import time
 import logging
@@ -151,6 +147,11 @@ class PmProcess(models.Model):
     def _get_export_data_url(self, process_id):
         url_definition = self._call(
             f'processes/{int(process_id)}/export', method='POST')
+        return url_definition
+
+    @api.model
+    def _get_srceen(self, screen_id):
+        url_definition = self._call(f'screens/{int(screen_id)}')
         return url_definition
 
     @api.model
@@ -430,72 +431,6 @@ class PmProcess(models.Model):
                     _logger.error(e)
         return True
 
-    @api.model
-    def _set_variables(self, case):
-        # Da capire cosa succede per i sottoprocessi se setti una variabile del padre
-        data = {}
-        flag = False
-        for v in case.case_object_ids:
-            if bool(v.process_object_id.pm_variable_id):
-                data[v.name] = v.get_val()
-                flag = True
-        if flag:
-            case.process_group_id._set_case_variables(case.pm_case_id, data)
-
-    # @api.model
-    # def _route_case_from_task(self, task_executed_id):
-    #     case = task_executed_id.case_id
-    #     case.sudo().process_group_id._set_variables(case)
-    #     case_info = case.process_group_id._get_case_info(case.pm_case_id)
-    #     if (case_info['app_status'] == 'COMPLETED' and case.state == 'in_progress'):
-    #         case.state = 'completed'
-    #         if (case.parent_id):
-    #             case.process_group_id._route_case_from_task(
-    #                 case.parent_task_id)
-    #     else:
-    #         current_tasks_pre = case.process_group_id._get_current_tasks(
-    #             case_info)
-    #         cid_pre = [ctask['tas_uid'] for ctask in current_tasks_pre]
-
-    #         if (case.process_group_id._route_case(case.pm_case_id, task_executed_id.pm_del_index)):
-    #             current_tasks_post = case.process_group_id._get_current_tasks(
-    #                 case_info)
-    #             cid_post = [ctask['tas_uid'] for ctask in current_tasks_post]
-    #             for current_task in current_tasks_post:
-    #                 activity_id = self.env['syd_bpm.activity'].search(
-    #                     [('pm_activity_id', '=', current_task['tas_uid'])])
-    #                 task_id = self.env['syd_bpm.task_executed'].search([('case_id', '=', case.id), (
-    #                     'pm_task_id', '=', current_task['tas_uid']), ('pm_del_index', '=', current_task['del_index'])])
-    #                 # per risolvere loop e task paralleli
-    #                 if (not bool(task_id)):
-    #                     self.env['syd_bpm.task_executed'].create(
-    #                         {
-    #                             'name': current_task['tas_title'],
-    #                             'pm_task_id': current_task['tas_uid'],
-    #                             'pm_del_index': current_task['del_index'],
-    #                             'is_task_active': True,
-    #                             'case_id': case.id,
-    #                             'date_task_start': fields.Datetime.now(),
-    #                             'activity_id': activity_id.id
-    #                         }
-    #                     )
-    #             for current_task in current_tasks_pre:
-    #                 # Task completati
-    #                 if (current_task['tas_uid'] not in cid_post):
-    #                     task_completed = self.env['syd_bpm.task_executed'].search(
-    #                         [('pm_task_id', '=', current_task['tas_uid']), ('case_id', '=', case.id,)], limit=1)
-    #                     # TODO
-    #                     task_completed.is_task_active = False
-    #                     task_completed.date_task_end = fields.Datetime.now()
-
-    #         case_info = case.process_group_id._get_case_info(case.pm_case_id)
-    #         # Ad esempio dopo azioni automatiche
-    #         if (case_info['app_status'] == 'COMPLETED' and case.state == 'in_progress'):
-    #             case.state = 'completed'
-    #             if (case.parent_id):
-    #                 case.process_group_id._route_case_from_task(
-    #                     case.parent_task_id)
-
     def _get_process_export_json(self):
         """
         Get process export url form the api 'processes/{process_id}/export', method='POST
@@ -519,40 +454,43 @@ class PmProcess(models.Model):
 
     def _create_dynamic_form_from_parsed_files(self):
         """
-        解析下载的process json文件，写到Dynamic Form
+        Write the json data to the 'Dynamic Form'
         """
         if self.export_data and isinstance(self.export_data, str):
             _data_dict = json.loads(self.export_data)
-            _logger.warning(_data_dict)
-            _screen_list = _data_dict.get('screens')
-            for _screen in _screen_list:
-                _screen_record = self.env['pm.dynamic_form'].search(
-                    [('pm_screen_id', '=', _screen.get('id')), ('name', '=', _screen.get('config')[0].get('name'))])
+            _bpm_str = _data_dict['process'].get('bpmn')
+            _bpm = _bpm_str.encode("utf-8")
+            import xml.dom.minidom
+            content = xml.dom.minidom.parseString(_bpm)
+            for element in content.getElementsByTagName('bpmn:task'):
+                _screen_record = self.env['pm.dynamic_form'].search([('pm_screen_id', '=', element.getAttribute(
+                    "pm:screenRef")), ('name', '=', element.getAttribute("name"))])
                 if not _screen_record:
                     _val = {
-                        'pm_screen_id': _screen.get('id'),
-                        'name': _screen.get('config')[0].get('name'),
+                        'pm_screen_id': element.getAttribute("pm:screenRef"),
+                        'name': element.getAttribute("name"),
                         'process_id': self.id,
-                        'pm_screen_label': _screen.get('title'),
-                        'pm_screen_type': _screen.get('type'),
                     }
                     _screen_record = self.env['pm.dynamic_form'].create(
                         _val)
+                    _screen = self._get_srceen(
+                        element.getAttribute("pm:screenRef"))
                     _item_list = _screen.get('config')[0].get('items')
                     _item_val = []
                     for _item in _item_list:
-                        _item_val.append((0, 0, {
-                            'name': _item.get('config').get('name'),
-                            'dynamic_form_id': _screen_record.id,
-                            'pm_screen_item_name': _item.get('config').get('name'),
-                            'pm_screen_item_label': _item.get('config').get('label'),
-                            'pm_screen_item_type': _item.get('config').get('type')
-                        }))
+                        if _item.get('component') and _item.get('component') not in ['FormButton', 'FormNestedScreen']:
+                            _item_val.append((0, 0, {
+                                'name': _item.get('config').get('name'),
+                                'dynamic_form_id': _screen_record.id,
+                                'pm_screen_item_name': _item.get('config').get('name'),
+                                'pm_screen_item_label': _item.get('config').get('label'),
+                                'pm_screen_item_type': _item.get('config').get('type')
+                            }))
                     _screen_record.write({'dynamic_form_items': _item_val})
                 else:
-                    _screen_record.name = _screen.get('config')[0].get('name')
-                    _screen_record.pm_screen_label = _screen.get('title')
-                    _screen_record.pm_screen_type = _screen.get('type')
+                    _screen_record.name = element.getAttribute("name")
+                    _screen_record.pm_screen_id = element.getAttribute(
+                        "pm:screenRef")
 
     def button_get_process_export_json(self):
         self._get_process_export_json()

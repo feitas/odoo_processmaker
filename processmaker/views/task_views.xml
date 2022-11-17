@@ -20,8 +20,6 @@
                 <form>
                     <header>
                         <field name="state" widget="statusbar" />
-                        <button name="cancel_case" class="oe_highlight" type="object" string="Cancel Case" attrs="{'invisible':[('state','!=','in_progress')]}" confirm="This action cannot be reverted. Are you sure?">
-                        </button>
                         <button name="confirm_case" class="oe_highlight" type="object" string="Confirm Case" attrs="{'invisible':['|',('state','!=','in_progress'),('is_assigned_to','=',False)]}">
                         </button>
                     </header>
