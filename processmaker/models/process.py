@@ -275,14 +275,14 @@ class PmProcess(models.Model):
         process_id.pm_process_id = res.get('process_id')
         _process_dict = res.get('process')
         if _process_dict:
-            process_id.write({'description': _process_dict['description'], 'start_events': str(
-                _process_dict['start_events']), 'pm_callable_id': _process_dict['start_events'][0].get('ownerProcessId')})
+            process_id.write(
+                {'pm_callable_id': _process_dict['start_events'][0].get('ownerProcessId')})
         _domain = [
             ('name', '=', res.get('name')),
             ('process_id', '=', int(process_id.id)),
             ('pm_activity_id', '=', res.get('id'))
         ]
-        request_id = self.env['syd_bpm.activity'].search(_domain, limit=1)
+        request_id = self.env['pm.request'].search(_domain, limit=1)
         related_record = self.env[related_model].search(
             [('id', '=', int(related_id))]) if related_id else False
         if not request_id:
@@ -290,20 +290,17 @@ class PmProcess(models.Model):
                 'name': '-'.join((res.get('name'), related_record.name)) if related_record else res.get('name'),
                 'pm_user': int(res.get('user_id')) if res.get('user_id') else False,
                 'pm_callable_id': res.get('callable_id'),
-                'type': 'user-case',
                 'process_id': process_id.id,
-                'user_id': res.get('user_id'),
                 'pm_activity_id': res.get('id'),  # 用于找到PM上的流程实例
                 'status': res.get('status'),
                 'related_model': related_model if related_model else '',
                 'related_id': related_id if related_id and isinstance(related_id, (int, str)) else False
             }
-            request_id = self.env['syd_bpm.activity'].create(_val)
+            request_id = self.env['pm.request'].create(_val)
         else:
             request_id.name = '-'.join((res.get('name'), related_record.name)
                                        ) if related_record else res.get('name')
             request_id.process_id = process_id.id
-            request_id.user_id = res.get('user_id')
             request_id.pm_activity_id = res.get('id')
             request_id.pm_user = int(res.get('user_id'))
             request_id.pm_callable_id = res.get('callable_id')
@@ -318,7 +315,7 @@ class PmProcess(models.Model):
                 _domain = [
                     ('pm_case_id', '=', item.get('id')),
                 ]
-                task = self.env['syd_bpm.case'].search(_domain)
+                task = self.env['pm.task'].search(_domain)
                 if not task:
                     _state = 'in_progress'
                     if item.get('user_id'):
@@ -346,7 +343,7 @@ class PmProcess(models.Model):
                         [('pm_user_id', '=', item.get('user_id'))])
                     if _user:
                         _val.update({'pm_assigned_to': _user.id})
-                    self.env['syd_bpm.case'].create(_val)
+                    self.env['pm.task'].create(_val)
         else:
             _logger.error(pm_tasks)
 
@@ -445,59 +442,59 @@ class PmProcess(models.Model):
         if flag:
             case.process_group_id._set_case_variables(case.pm_case_id, data)
 
-    @api.model
-    def _route_case_from_task(self, task_executed_id):
-        case = task_executed_id.case_id
-        case.sudo().process_group_id._set_variables(case)
-        case_info = case.process_group_id._get_case_info(case.pm_case_id)
-        if (case_info['app_status'] == 'COMPLETED' and case.state == 'in_progress'):
-            case.state = 'completed'
-            if (case.parent_id):
-                case.process_group_id._route_case_from_task(
-                    case.parent_task_id)
-        else:
-            current_tasks_pre = case.process_group_id._get_current_tasks(
-                case_info)
-            cid_pre = [ctask['tas_uid'] for ctask in current_tasks_pre]
+    # @api.model
+    # def _route_case_from_task(self, task_executed_id):
+    #     case = task_executed_id.case_id
+    #     case.sudo().process_group_id._set_variables(case)
+    #     case_info = case.process_group_id._get_case_info(case.pm_case_id)
+    #     if (case_info['app_status'] == 'COMPLETED' and case.state == 'in_progress'):
+    #         case.state = 'completed'
+    #         if (case.parent_id):
+    #             case.process_group_id._route_case_from_task(
+    #                 case.parent_task_id)
+    #     else:
+    #         current_tasks_pre = case.process_group_id._get_current_tasks(
+    #             case_info)
+    #         cid_pre = [ctask['tas_uid'] for ctask in current_tasks_pre]
 
-            if (case.process_group_id._route_case(case.pm_case_id, task_executed_id.pm_del_index)):
-                current_tasks_post = case.process_group_id._get_current_tasks(
-                    case_info)
-                cid_post = [ctask['tas_uid'] for ctask in current_tasks_post]
-                for current_task in current_tasks_post:
-                    activity_id = self.env['syd_bpm.activity'].search(
-                        [('pm_activity_id', '=', current_task['tas_uid'])])
-                    task_id = self.env['syd_bpm.task_executed'].search([('case_id', '=', case.id), (
-                        'pm_task_id', '=', current_task['tas_uid']), ('pm_del_index', '=', current_task['del_index'])])
-                    # per risolvere loop e task paralleli
-                    if (not bool(task_id)):
-                        self.env['syd_bpm.task_executed'].create(
-                            {
-                                'name': current_task['tas_title'],
-                                'pm_task_id': current_task['tas_uid'],
-                                'pm_del_index': current_task['del_index'],
-                                'is_task_active': True,
-                                'case_id': case.id,
-                                'date_task_start': fields.Datetime.now(),
-                                'activity_id': activity_id.id
-                            }
-                        )
-                for current_task in current_tasks_pre:
-                    # Task completati
-                    if (current_task['tas_uid'] not in cid_post):
-                        task_completed = self.env['syd_bpm.task_executed'].search(
-                            [('pm_task_id', '=', current_task['tas_uid']), ('case_id', '=', case.id,)], limit=1)
-                        # TODO
-                        task_completed.is_task_active = False
-                        task_completed.date_task_end = fields.Datetime.now()
+    #         if (case.process_group_id._route_case(case.pm_case_id, task_executed_id.pm_del_index)):
+    #             current_tasks_post = case.process_group_id._get_current_tasks(
+    #                 case_info)
+    #             cid_post = [ctask['tas_uid'] for ctask in current_tasks_post]
+    #             for current_task in current_tasks_post:
+    #                 activity_id = self.env['syd_bpm.activity'].search(
+    #                     [('pm_activity_id', '=', current_task['tas_uid'])])
+    #                 task_id = self.env['syd_bpm.task_executed'].search([('case_id', '=', case.id), (
+    #                     'pm_task_id', '=', current_task['tas_uid']), ('pm_del_index', '=', current_task['del_index'])])
+    #                 # per risolvere loop e task paralleli
+    #                 if (not bool(task_id)):
+    #                     self.env['syd_bpm.task_executed'].create(
+    #                         {
+    #                             'name': current_task['tas_title'],
+    #                             'pm_task_id': current_task['tas_uid'],
+    #                             'pm_del_index': current_task['del_index'],
+    #                             'is_task_active': True,
+    #                             'case_id': case.id,
+    #                             'date_task_start': fields.Datetime.now(),
+    #                             'activity_id': activity_id.id
+    #                         }
+    #                     )
+    #             for current_task in current_tasks_pre:
+    #                 # Task completati
+    #                 if (current_task['tas_uid'] not in cid_post):
+    #                     task_completed = self.env['syd_bpm.task_executed'].search(
+    #                         [('pm_task_id', '=', current_task['tas_uid']), ('case_id', '=', case.id,)], limit=1)
+    #                     # TODO
+    #                     task_completed.is_task_active = False
+    #                     task_completed.date_task_end = fields.Datetime.now()
 
-            case_info = case.process_group_id._get_case_info(case.pm_case_id)
-            # Ad esempio dopo azioni automatiche
-            if (case_info['app_status'] == 'COMPLETED' and case.state == 'in_progress'):
-                case.state = 'completed'
-                if (case.parent_id):
-                    case.process_group_id._route_case_from_task(
-                        case.parent_task_id)
+    #         case_info = case.process_group_id._get_case_info(case.pm_case_id)
+    #         # Ad esempio dopo azioni automatiche
+    #         if (case_info['app_status'] == 'COMPLETED' and case.state == 'in_progress'):
+    #             case.state = 'completed'
+    #             if (case.parent_id):
+    #                 case.process_group_id._route_case_from_task(
+    #                     case.parent_task_id)
 
     def _get_process_export_json(self):
         """
@@ -569,13 +566,13 @@ class PmProcess(models.Model):
         """
         For the external action 'Create Request' menu
         """
-        _process_record = self.env['syd_bpm.process'].search(
+        _process_record = self.env['pm.process'].search(
             [('pm_callable_id', '=', related_model)], limit=1)
         if not _process_record:
             return {"error": True, "message": "Can not find process for %s ..." % related_model}
 
-        if _process_record and _process_record.process_group_id:
-            _process_record.process_group_id.start_process(
+        if _process_record:
+            _process_record.start_process(
                 process_id=_process_record, related_model=related_model, related_id=related_id)
             return True
         return False
