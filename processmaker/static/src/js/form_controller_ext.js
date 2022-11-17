@@ -2,9 +2,6 @@
 
 import { FormController } from '@web/views/form/form_controller';
 import { formView } from '@web/views/form/form_view';
-import { useModel } from "@web/views/model";
-import { useService } from "@web/core/utils/hooks";
-
 
 export class PMFormController extends FormController {
     /**
