@@ -4,8 +4,10 @@
             <field name="name">view.process.tree</field>
             <field name="model">pm.process</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree js_class="sync_data_tree">
                     <field name="name"/>
+                    <field name="pm_process_id"/>
+                    <field name="pm_callable_id"/>
                 </tree>
             </field>
         </record>
@@ -15,9 +17,43 @@
             <field name="model">pm.process</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
-                        <field name="name" />
-                    </group>
+                    <header>
+                        <button name="button_get_process_export_json" class="oe_highlight" type="object" string="Get Export Json" attrs="{'invisible':[('export_data_url','!=',False)]}"></button>
+                        <button name="button_parse_process_json" class="oe_highlight" type="object" string="Parse Json" attrs="{'invisible':[('export_data_url','=',False)]}"></button>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="pm_process_id"/>
+                            <field name="pm_callable_id"/>
+                            <field name="export_data_url"/>
+                            <field name="export_data"/>
+                        </group>
+                        <notebook>
+                            <page string="Tasks">
+                                <field name="task_ids"/>
+                            </page>
+                            <page string="Requests">
+                                <field name="pm_activity_ids"/>
+                            </page>
+                            <page string="Dynamic form">
+                                <field name="dynamic_form_ids">
+                                    <tree string="Screens" editable="bottom">
+                                        <field name="name"/>
+                                        <field name="process_id"/>
+                                        <field name="pm_screen_id"/>
+                                        <field name="pm_screen_label"/>
+                                        <field name="pm_screen_type"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="o_attachment_preview"/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="message_ids"/>
+                    </div>
                 </form>
             </field>
         </record>

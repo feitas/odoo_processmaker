@@ -4,6 +4,7 @@
         <xpath expr="." position="inside">
             <script type="text/javascript" src="/processmaker/static/src/js/basic_model_ext.js"/>
             <script type="text/javascript" src="/processmaker/static/src/js/form_controller_ext.js"/>
+            <script type="text/javascript" src="/processmaker/static/src/js/sync_data.js"/>
         </xpath>
     </template>
 </odoo>

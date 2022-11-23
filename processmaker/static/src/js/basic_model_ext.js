@@ -1,4 +1,4 @@
-odoo.define('syd_process_maker.BasicModel', function (require) {
+odoo.define('processmaker.BasicModel', function (require) {
     "use strict";
     var BasicModel = require('web.BasicModel');
     var BasicModelExt = BasicModel.include({

@@ -1,4 +1,4 @@
-odoo.define('syd_process_maker.FormController', function (require) {
+odoo.define('processmaker.FormController', function (require) {
     "use strict";
 
     var core = require('web.core');

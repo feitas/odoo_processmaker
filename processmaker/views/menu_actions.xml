@@ -22,9 +22,10 @@
       <!-- Top menu item -->
       <menuitem name="B.P.M." id="pm_menu_root" groups="group_bpm_manager" web_icon="processmaker,static/description/icon.png"/>
 
-      <menuitem name="Process" parent="pm_menu_root" id="pm_menu_process" sequence="10" action="action_pm_process"/>
-      <menuitem name="Request" parent="pm_menu_root" id="pm_menu_request" sequence="20" action="action_pm_request"/>
-      <menuitem name="Task" parent="pm_menu_root" id="pm_menu_task" sequence="30" action="action_pm_task"/>
+      <menuitem name="Request" parent="pm_menu_root" id="pm_menu_request" sequence="10" action="action_pm_request"/>
+      <menuitem name="Task" parent="pm_menu_root" id="pm_menu_task" sequence="20" action="action_pm_task"/>
+      <menuitem name="Process" parent="pm_menu_root" id="pm_menu_process" sequence="30" action="action_pm_process"/>
+
 
       <menuitem name="Configuration" parent="pm_menu_root" id="pm_menu_conf" sequence="100"/>
 

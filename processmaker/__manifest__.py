@@ -31,7 +31,8 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/actions.xml',
-        
+        'data/data.xml',
+
         'views/assets.xml',
         'views/menu_actions.xml',
         'views/process_views.xml',
@@ -39,11 +40,11 @@
         'views/task_views.xml',
         'views/res_config_settings_views.xml',
         # 'views/views.xml',
-        # 'views/process_views.xml',
         # 'views/dynamice_views.xml',
     ],
     'qweb': [
+        'static/src/xml/sync_data_views.xml',
     ],
     'installable': True,
-    'application': False,
+    'application': True,
 }
