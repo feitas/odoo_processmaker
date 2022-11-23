@@ -21,9 +21,8 @@
 
       <!-- Top menu item -->
       <menuitem name="B.P.M." id="pm_menu_root" groups="group_bpm_manager" web_icon="processmaker,static/description/icon.png"/>
-
-      <menuitem name="Process" parent="pm_menu_root" id="pm_menu_process" sequence="10" action="action_pm_process"/>
-      <menuitem name="Request" parent="pm_menu_root" id="pm_menu_request" sequence="20" action="action_pm_request"/>
+      <menuitem name="Request" parent="pm_menu_root" id="pm_menu_request" sequence="10" action="action_pm_request"/>
+      <menuitem name="Process" parent="pm_menu_root" id="pm_menu_process" sequence="20" action="action_pm_process"/>
       <menuitem name="Task" parent="pm_menu_root" id="pm_menu_task" sequence="30" action="action_pm_task"/>
 
       <menuitem name="Configuration" parent="pm_menu_root" id="pm_menu_conf" sequence="100"/>
@@ -40,29 +39,34 @@
 
 
 
-      <!-- <menuitem name="Process Groups" parent="pm_menu_root" id="pm_menu_process_groups" sequence="1" action="process_group_act"/>
+      <!-- <menuitem name="Process Groups" parent="pm_menu_root" id="pm_menu_process_groups" sequence="1" action="process_group_act"/> -->
 
 
-      <menuitem name="Processes" parent="pm_menu_root" id="pm_menu_processes" sequence="2"/>
-      <menuitem name="Processes" parent="pm_menu_processes" id="pm_sub_menu_processes" sequence="1" action="process_act"/>
-      
+      <!-- <menuitem name="Processes" parent="pm_menu_root" id="pm_menu_processes" sequence="2"/>
+      <menuitem name="Processes" parent="pm_menu_processes" id="pm_sub_menu_processes" sequence="1" action="process_act"/> -->
 
-      <menuitem name="Triggers" parent="pm_menu_root" id="pm_menu_triggers" sequence="3"/>
+      <!-- <menuitem name="Triggers" parent="pm_menu_root" id="pm_menu_triggers" sequence="3"/>
       <menuitem name="Process" parent="pm_menu_triggers" id="pm_menu_process_triggers" sequence="1" action="process_trigger_act"/>
       <menuitem name="Activity" parent="pm_menu_triggers" id="pm_menu_activity_triggers" sequence="2" action="activity_trigger_act"/>
 
       <menuitem name="Reports" parent="pm_menu_root" id="pm_menu_reports" sequence="4"/>
-      <menuitem name="Tasks" parent="pm_menu_reports" id="pm_menu_tasks_report" sequence="1" action="tasks_report_act"/>
+      <menuitem name="Tasks" parent="pm_menu_reports" id="pm_menu_tasks_report" sequence="1" action="tasks_report_act"/> -->
 
-      
-      <menuitem name="Process Objects" parent="pm_menu_conf" id="pm_menu_process_objects" sequence="2" action="process_object_act"/>
+      <!-- <menuitem name="Process Objects" parent="pm_menu_conf" id="pm_menu_process_objects" sequence="2" action="process_object_act"/>
       <menuitem name="Process Roles" parent="pm_menu_conf" id="pm_menu_process_roles" sequence="3" action="process_role_act"/>
-      <menuitem name="Process Categories" parent="pm_menu_conf" id="pm_menu_process_categories" sequence="7" action="process_category_act"/>
+      <menuitem name="Process Categories" parent="pm_menu_conf" id="pm_menu_process_categories" sequence="7" action="process_category_act"/> -->
+      <record model="ir.actions.act_window" id="dyanmic_form_action">
+         <field name="name">Dynamic form</field>
+         <field name="res_model">pm.dynamic_form</field>
+         <field name="view_mode">tree,form</field>
+         <!-- <field name="search_view_id" ref="view_dynamic_form_filter" /> -->
+         <field name="context">{'search_default_group_by_process_id':1}</field>
+      </record>
 
-      <menuitem id="management_dynamic_form" name="Dynamic forms" parent="pm.pm_menu_conf" sequence="4" action="dyanmic_form_action" />
-      <menuitem id="date_calculated" name="Date Calculated" parent="pm.pm_menu_conf" sequence="5" action="process_date_calculated_act" />
-      <menuitem id="process_priority" name="Process Priority" parent="pm.pm_menu_conf" sequence="6" action="process_priority_act" />
+      <menuitem id="management_dynamic_form" name="Dynamic forms" parent="pm_menu_root" sequence="40" action="dyanmic_form_action" />
+      <!-- <menuitem id="date_calculated" name="Date Calculated" parent="pm.pm_menu_conf" sequence="5" action="process_date_calculated_act" />
+      <menuitem id="process_priority" name="Process Priority" parent="pm.pm_menu_conf" sequence="6" action="process_priority_act" /> -->
 
-       -->
+
    </data>
 </odoo>

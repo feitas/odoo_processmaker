@@ -6,6 +6,9 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
+                    <field name="pm_assigned_to"/>
+                    <field name="pm_case_id"/>
+                    <field name="process_id"/>
                 </tree>
             </field>
         </record>
@@ -15,9 +18,27 @@
             <field name="model">pm.task</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
-                        <field name="name" />
-                    </group>
+                    <header>
+                        <field name="state" widget="statusbar" />
+                        <button name="confirm_case" class="oe_highlight" type="object" string="Confirm Case" attrs="{'invisible':['|',('state','!=','in_progress'),('is_assigned_to','=',False)]}">
+                        </button>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="pm_assigned_to"/>
+                            <field name="activity_id"/>
+                            <field name="process_id" />
+                            <field name="pm_case_id"/>
+                            <field name="pm_element_id"/>
+                            <field name="pm_element_type"/>
+                            <field name="pm_element_name"/>
+                            <field name="related_model"/>
+                            <field name="related_id"/>
+                            <field name="is_assigned_to" invisible="1"/>
+                            <field name="date_deadline" />
+                        </group>
+                    </sheet>
                 </form>
             </field>
         </record>

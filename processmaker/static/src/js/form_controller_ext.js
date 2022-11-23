@@ -1,67 +1,77 @@
-odoo.define('processmaker.FormController', function (require) {
-    "use strict";
+/** @odoo-module */
 
-    var core = require('web.core');
-    var FormController = require('web.FormController');
+import { FormController } from '@web/views/form/form_controller';
+import { formView } from '@web/views/form/form_view';
 
-    var _t = core._t;
-    var FormControllerExt = FormController.include({
-        _getActionMenuItems: function (state) {
-            if (!this.hasActionMenus || this.mode === 'edit') {
-                return null;
-            }
-            const props = this._super(...arguments);
-            const activeField = this.model.getActiveField(state);
-            const otherActionItems = [];
-            if (this.archiveEnabled && activeField in state.data) {
-                if (state.data[activeField]) {
-                    otherActionItems.push({
-                        description: _t("Archive"),
-                        callback: () => {
-                            Dialog.confirm(this, _t("Are you sure that you want to archive this record?"), {
-                                confirm_callback: () => this._toggleArchiveState(true),
-                            });
-                        },
-                    });
-                } else {
-                    otherActionItems.push({
-                        description: _t("Unarchive"),
-                        callback: () => this._toggleArchiveState(false),
-                    });
-                }
-            }
-            if (this.activeActions.create && this.activeActions.duplicate) {
+export class PMFormController extends FormController {
+    /**
+     * @override
+     */
+    getActionMenuItems() {
+        const otherActionItems = [];
+        if (this.archiveEnabled) {
+            if (this.model.root.isActive) {
                 otherActionItems.push({
-                    description: _t("Duplicate"),
-                    callback: () => this._onDuplicateRecord(this),
+                    key: "archive",
+                    description: this.env._t("Archive"),
+                    callback: () => {
+                        const dialogProps = {
+                            body: this.env._t(
+                                "Are you sure that you want to archive all this record?"
+                            ),
+                            confirm: () => this.model.root.archive(),
+                            cancel: () => { },
+                        };
+                        this.dialogService.add(ConfirmationDialog, dialogProps);
+                    },
+                });
+            } else {
+                otherActionItems.push({
+                    key: "unarchive",
+                    description: this.env._t("Unarchive"),
+                    callback: () => this.model.root.unarchive(),
                 });
             }
-            if (this.activeActions.delete) {
-                otherActionItems.push({
-                    description: _t("Delete"),
-                    callback: () => this._onDeleteRecord(this),
-                });
-            }
+        }
+        if (this.archInfo.activeActions.create && this.archInfo.activeActions.duplicate) {
             otherActionItems.push({
-                description: _t("Create Resquest"),
-                callback: () => this._onCreateResquest(this),
+                key: "duplicate",
+                description: this.env._t("Duplicate"),
+                callback: () => this.duplicateRecord(),
             });
-            return Object.assign(props, {
-                items: Object.assign(this.toolbarActions, { other: otherActionItems }),
+        }
+        if (this.archInfo.activeActions.delete && !this.model.root.isVirtual) {
+            otherActionItems.push({
+                key: "delete",
+                description: this.env._t("Delete"),
+                callback: () => this.deleteRecord(),
+                skipSave: true,
             });
-        },
-
-        /**
-         * Called when the user clicks on 'Create Request' in the action menus
-         *
-         * @overwrite
-         * @private
-         */
-        _onCreateResquest: async function () {
-            const handle = await this.model.createResquest(this.handle);
-        },
-    })
-
-    return FormControllerExt;
-
-});
+        }
+        otherActionItems.push({
+            description: this.env._t("Create Resquest"),
+            callback: () => this._onCreateResquest(this.model),
+        });
+        return Object.assign({}, this.props.info.actionMenus, { other: otherActionItems });
+    }
+    /**
+     * Called when the user clicks on 'Create Request' in the action menus
+     *
+     * @overwrite
+     * @private
+     */
+    async _onCreateResquest() {
+        let resId = this.model.__bm_load_params__.res_id;
+        let modelName = this.model.__bm_load_params__.modelName;
+        await this.model.orm.call("pm.process", "action_create_new_request", [resId, modelName]).then((res) => {
+            if (res.error) {
+                alert(res["message"]);
+            } else {
+                location.reload();
+            }
+        }).catch(() => {
+            throw Error("Ops, something wrong.....");
+        });
+    }
+}
+formView.Controller = PMFormController;

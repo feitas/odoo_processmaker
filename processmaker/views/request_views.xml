@@ -6,6 +6,13 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
+                    <field name="process_id"/>
+                    <field name="pm_callable_id"/>
+                    <field name="pm_activity_id"/>
+                    <field name="pm_user"/>
+                    <field name="related_model"/>
+                    <field name="related_id"/>
+                    <field name="status"/>
                 </tree>
             </field>
         </record>
@@ -15,9 +22,18 @@
             <field name="model">pm.request</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
-                        <field name="name" />
-                    </group>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="process_id"/>
+                            <field name="pm_callable_id"/>
+                            <field name="pm_activity_id"/>
+                            <field name="pm_user"/>
+                            <field name="related_model"/>
+                            <field name="related_id"/>
+                            <field name="status"/>
+                        </group>
+                    </sheet>
                 </form>
             </field>
         </record>
