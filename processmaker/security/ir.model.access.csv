@@ -1,7 +1,9 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_pm_process_empty,pm.process.empty,model_pm_process,,1,0,0,0
-access_pm_request_empty,pm.request.empty,model_pm_request,,1,0,0,0
-access_pm_task_empty,pm.task.empty,model_pm_task,,1,0,0,0
+access_pm_process_empty,pm.process.empty,model_pm_process,base.group_user,1,0,0,0
+access_pm_request_empty,pm.request.empty,model_pm_request,base.group_user,1,0,0,0
+access_pm_task_empty,pm.task.empty,model_pm_task,base.group_user,1,0,0,0
 access_pm_process_manager,pm.process.manager,model_pm_process,group_bpm_manager,1,1,1,1
 access_pm_request_manager,pm.request.manager,model_pm_request,group_bpm_manager,1,1,1,1
 access_pm_task_manager,pm.task.manager,model_pm_task,group_bpm_manager,1,1,1,1
+access_pm_dynamic_form_manager,pm.dynamic_form.manager,model_pm_dynamic_form,group_bpm_manager,1,1,1,1
+access_pm_dynamic_form_item_manager,pm.dynamic_form_item.manager,model_pm_dynamic_form_item,group_bpm_manager,1,1,1,1

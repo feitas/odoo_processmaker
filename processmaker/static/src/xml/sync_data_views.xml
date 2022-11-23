@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates>
+    <t t-name="ProcessMaker.sync_data_button">
+        <button type="button" class="btn btn-primary o_button_pm_sync_data">
+            Sync Data
+        </button>
+    </t>
+
+    <t t-name="ProcessMakerListView.buttons" t-extend="ListView.buttons">
+        <!-- Before the export button -->
+        <t t-jquery="button.o_list_export_xlsx" t-operation="before">
+            <t t-call="ProcessMaker.sync_data_button" groups="processmaker.group_bpm_manager"/>
+        </t>
+    </t>
+</templates>
